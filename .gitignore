@@ -1,0 +1,8 @@
+# Compiled source #
+###################
+.o
+.elf
+
+# Hex dumps #
+###################
+.hex
