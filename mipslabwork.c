@@ -26,32 +26,42 @@ char textstring[] = "text, more text, and even more text!";
 /* Interrupt Service Routine */
 void user_isr( void )
 {
+  //
+  // IFS(0)&= ~0x100;
+  // timeoutcount++;
+  // if(timeoutcount==10){
+  // time2string(textstring,mytime);
+  // display_string(3,textstring);
+  // display_update();
+  // tick(&mytime);
+  // timeoutcount=0;}
+  // return;
+}
+void genpwm(int dutycycle) {
+  PR2 = 1999;
+  OC1RS = dutycycle;
+  OC1CON= 0x7;
+  T2CONSET = 0x8000;
+  OC1CONSET = 0xFF00; // bit 15:8 output compare control register ON.
 
-  IFS(0)&= ~0x100;
-  timeoutcount++;
-  if(timeoutcount==10){
-  time2string(textstring,mytime);
-  display_string(3,textstring);
-  display_update();
-  tick(&mytime);
-  timeoutcount=0;}
-  return;
 }
 
 /* Lab-specific initialization goes here */
 void labinit( void )
 {
-  *trisd |= 0xFE0; // portd or 1111 1110 0000; = set port 11-5 t0 input(LED)
-  (*trise >> 8) << 8;  // clear 8 lsb ()
-  *porte=0; // set 0;
-  //TRISE = 0xFF;
-  T2CON=0x70; // bit 6-4 prescale 1:32, 101. page 14-9pic32 FRM
-  T2CONSET=0x8000;
-  PR2=(80000000/256)/10;
-  TMR2=0;
-  IEC(0)|=0x100; //enables interrupts from timer2, p90 FRM
-  IPC(2)|=0x1F; // priority
-  enable_interrupt();
+  // *trisd |= 0xFE0; // portd or 1111 1110 0000; = set port 11-5 t0 input(LED)
+  // (*trise >> 8) << 8;  // clear 8 lsb ()
+  // *porte=0; // set 0;
+  // //TRISE = 0xFF;
+  // T2CON=0x70; // bit 6-4 prescale 1:32, 101. page 14-9pic32 FRM
+  // T2CONSET=0x8000;
+  // PR2=(80000000/256)/10;
+  // TMR2=0;
+  // IEC(0)|=0x100; //enables interrupts from timer2, p90 FRM
+  // IPC(2)|=0x1F; // priority
+  // enable_interrupt();
+  genpwm(1000);
+
   return;
 }
 
