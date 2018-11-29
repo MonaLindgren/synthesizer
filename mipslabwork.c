@@ -38,10 +38,11 @@ void user_isr( void )
   // return;
 }
 void genpwm(int dutycycle) {
-  PR2 = 1999;
-  OC1RS = dutycycle;
+  PR2 = 22727;
+  OC1RS = dutycycle; // volume
   OC1CON= 0x7;
-  T2CONSET = 0x8000;
+  T2CON = 0x20; // set bit 6-4, prescales 1:4
+  T2CONSET = 0x8000; // start timer
   OC1CONSET = 0xFF00; // bit 15:8 output compare control register ON.
 
 }
@@ -60,7 +61,7 @@ void labinit( void )
   // IEC(0)|=0x100; //enables interrupts from timer2, p90 FRM
   // IPC(2)|=0x1F; // priority
   // enable_interrupt();
-  genpwm(1000);
+  genpwm(20);
 
   return;
 }
