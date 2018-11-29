@@ -20,6 +20,12 @@ int prime = 1234567;
 volatile int* trise = (volatile int*) 0xBF886100; //skapa pointers
 volatile int* porte= (volatile int*) 0xBF886110;
 volatile int* trisd= (volatile int*) 0xBF8860C0;
+int btn2_flag,btn3_flag,btn4_flag,btn1_flag,nobtn_flag;
+btn2_flag=0;
+btn3_flag=0;
+btn4_flag=0;
+btn1_flag=0;
+nobtn_flag=0;
 
 char textstring[] = "text, more text, and even more text!";
 
@@ -37,8 +43,9 @@ void user_isr( void )
   // timeoutcount=0;}
   // return;
 }
-void genpwm(int dutycycle) {
-  PR2 = 22727;
+void genpwm(int dutycycle, int freq) {
+
+  PR2 = freq;  //frequency
   OC1RS = dutycycle; // volume
   OC1CON= 0x7;
   T2CON = 0x20; // set bit 6-4, prescales 1:4
@@ -50,7 +57,7 @@ void genpwm(int dutycycle) {
 /* Lab-specific initialization goes here */
 void labinit( void )
 {
-  // *trisd |= 0xFE0; // portd or 1111 1110 0000; = set port 11-5 t0 input(LED)
+  *trisd |= 0xFE0; //enables btn2-4 and switch 1-4
   // (*trise >> 8) << 8;  // clear 8 lsb ()
   // *porte=0; // set 0;
   // //TRISE = 0xFF;
@@ -61,14 +68,44 @@ void labinit( void )
   // IEC(0)|=0x100; //enables interrupts from timer2, p90 FRM
   // IPC(2)|=0x1F; // priority
   // enable_interrupt();
-  genpwm(20);
+  //genpwm(20);
 
   return;
+}
+
+void checkfreq( void ){
+  int button = getbtn();
+  int sw = getsw();
+  if (button==0 && nobtn_flag==0){  // no button used, set duty = 0, volume 0., only repeat if flag false
+    genpwm(0,1);
+    nobtn_flag=1;
+
+    btn2_flag=btn3_flag=btn4_flag=0;
+  }
+  else {
+    nobtn_flag = 0;
+    if((button & 1) && (btn2_flag==0)){  //BTN2 pushed
+      btn2_flag=1;
+      genpwm(256,40496);
+    }
+    if((button>>1 & 1) && (btn3_flag==0)){ //BTN3 pushed
+      btn3_flag=1;
+      genpwm(256,42904);
+    }
+    if((button>>2 & 1) && (btn4_flag==0)){ //BTN4 pushed
+      btn4_flag=1;
+      genpwm(256,45454);
+    }
+  }
+
+
+
 }
 
 /* This function is called repetitively from the main program */
 void labwork( void )
 {
+  checkfreq();
   prime = nextprime(prime);
   display_string(0,itoaconv(prime));
   display_update();
