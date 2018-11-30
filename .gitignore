@@ -6,3 +6,7 @@
 # Hex dumps #
 ###################
 .hex
+
+analyse.asm
+hexmain.asm
+
