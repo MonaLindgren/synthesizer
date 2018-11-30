@@ -19,6 +19,6 @@ int getsw (void){
 int getbtn (void){
 	int tmp = (*portd >> 5) & 0x7;
 	tmp <<= 1;
-	tmp |= (PORTD >> 1) & 1;
+	tmp |= (PORTF >> 1) & 1;
 	return tmp;
 }

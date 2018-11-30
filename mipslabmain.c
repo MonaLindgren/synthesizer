@@ -10,6 +10,7 @@
 #include <stdint.h>   /* Declarations of uint_32 and the like */
 #include <pic32mx.h>  /* Declarations of system-specific addresses etc */
 #include "mipslab.h"  /* Declatations for these labs */
+#include "stdio.h"
 
 int main(void) {
         /*
@@ -55,11 +56,12 @@ int main(void) {
 	SPI2CONSET = 0x8000;
 
 	display_init();
-	display_string(0, "KTH/ICT lab");
-	display_string(1, "in Computer");
-	display_string(2, "Engineering");
+	//display_string(0, "A");
+	//display_string(1, "simple synthenizer");
+	//display_string(2, "Engineering");
 	display_string(3, "Welcome!");
 	display_update();
+
 
 	display_image(96, icon);
 

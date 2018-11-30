@@ -27,6 +27,7 @@ btn4_flag=0;
 btn1_flag=0;
 nobtn_flag=0;
 
+
 char textstring[] = "text, more text, and even more text!";
 
 /* Interrupt Service Routine */
@@ -58,7 +59,7 @@ void genpwm(int dutycycle, int freq) {
 void labinit( void )
 {
   *trisd |= 0xFE0; //enables btn2-4 and switch 1-4
-  TRISD |= 0x2; //enables btn1 as input. 
+  TRISF |= 0x2; //enables btn1 as input.
   // (*trise >> 8) << 8;  // clear 8 lsb ()
   // *porte=0; // set 0;
   // //TRISE = 0xFF;
@@ -76,11 +77,12 @@ void labinit( void )
 
 void checkfreq( void ){
   int button = getbtn();
+  display_string(0,itoaconv(button));
   int sw = getsw();
   if (button==0 && nobtn_flag==0){  // no button used, set duty = 0, volume 0., only repeat if flag false
     genpwm(0,1);
     nobtn_flag=1;
-    btn2_flag=btn3_flag=btn4_flag=0;
+    btn1_flag=btn2_flag=btn3_flag=btn4_flag=0;
   }
   else {
     nobtn_flag = 0;
@@ -102,15 +104,37 @@ void checkfreq( void ){
     }
   }
 
+}
+int pot(){
+unsigned int speed;
+AD1PCFG = ~(1 << 2); // portb 2 analog pin with pot
+TRISBSET = (1 << 2);
 
+AD1CHS = (0x2 << 16);
+
+AD1CON1 = (0x4 << 8) | (0x7 << 5);
+
+AD1CON2 = 0x0;
+AD1CON3 |= (0x1 << 15);
+AD1CON1 |= (0x1 << 15);
+AD1CON1 |= (0x1 << 1);
+
+while(!(AD1CON1 & (0x1 << 1)));
+while(!(AD1CON1 & 0x1));
+speed = ADC1BUF0;
+return speed;
 
 }
 
 /* This function is called repetitively from the main program */
 void labwork( void )
 {
+  unsigned int speed;
   checkfreq();
-  prime = nextprime(prime);
-  display_string(0,itoaconv(prime));
+  speed = pot();
+  display_string(1,itoaconv(speed));
+
+  //prime = nextprime(prime);
+  //display_string(0,itoaconv(prime));
   display_update();
 }
