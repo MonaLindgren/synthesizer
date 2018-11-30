@@ -58,6 +58,7 @@ void genpwm(int dutycycle, int freq) {
 void labinit( void )
 {
   *trisd |= 0xFE0; //enables btn2-4 and switch 1-4
+  TRISD |= 0x2; //enables btn1 as input. 
   // (*trise >> 8) << 8;  // clear 8 lsb ()
   // *porte=0; // set 0;
   // //TRISE = 0xFF;
@@ -79,22 +80,25 @@ void checkfreq( void ){
   if (button==0 && nobtn_flag==0){  // no button used, set duty = 0, volume 0., only repeat if flag false
     genpwm(0,1);
     nobtn_flag=1;
-
     btn2_flag=btn3_flag=btn4_flag=0;
   }
   else {
     nobtn_flag = 0;
-    if((button & 1) && (btn2_flag==0)){  //BTN2 pushed
-      btn2_flag=1;
+    if((button & 1) && (btn1_flag==0)){  //BTN1 pushed
+      btn1_flag=1;
       genpwm(256,40496);
     }
-    if((button>>1 & 1) && (btn3_flag==0)){ //BTN3 pushed
-      btn3_flag=1;
+    if((button>>1 & 1) && (btn2_flag==0)){ //BTN2 pushed
+      btn2_flag=1;
       genpwm(256,42904);
     }
-    if((button>>2 & 1) && (btn4_flag==0)){ //BTN4 pushed
-      btn4_flag=1;
+    if((button>>2 & 1) && (btn3_flag==0)){ //BTN3 pushed
+      btn3_flag=1;
       genpwm(256,45454);
+    }
+    if((button>>3 & 1) && (btn4_flag==0)){ //BTN4 pushed
+      btn4_flag=1;
+      genpwm(256,48000); // TODO gissade bara 480000
     }
   }
 
