@@ -27,6 +27,7 @@ btn3_flag=0;
 btn4_flag=0;
 btn1_flag=0;
 nobtn_flag=0;
+int testsong[] = {40496,42904,40496,42904};
 
 
 char textstring[] = "text, more text, and even more text!";
@@ -102,12 +103,17 @@ void checkfreq(int dutycycle){
     if((button>>3 & 1) && (btn4_flag==0)){ //BTN4 pushed
       btn4_flag=1;
       genpwm(dutycycle,48000); // TODO gissade bara 480000
-    }
+  }
+  // TODO some switch connect to delaystate
+
   }
 
 }
+
+// function that returns a value between 0-1023 controlled by potentiometer
+// TODO Comment code
 int pot( void ){
-unsigned int speed;
+unsigned int value;
 AD1PCFG = ~(1 << 2); // portb 2 analog pin with pot
 TRISBSET = (1 << 2);
 
@@ -122,10 +128,26 @@ AD1CON1 |= (0x1 << 1);
 
 while(!(AD1CON1 & (0x1 << 1)));
 while(!(AD1CON1 & 0x1));
-speed = ADC1BUF0;
-return speed;
+value = ADC1BUF0;
+return value;
 
 }
+
+// If switch is on do this -- TODO  create delay that works
+void delaystate(int ms, int song[],int volume){
+  int counter =0;
+  int songsize = sizeof(song)/sizeof(song[0]);
+  int n,i;
+
+  for(n = 0; n < songsize; n++){
+  while (1) {
+    counter++;
+        }
+  for(i=0; i < ms*10; i++){
+    genpwm(0,0);
+  }
+      }
+    }
 
 /* This function is called repetitively from the main program */
 void labwork( void )
@@ -133,13 +155,15 @@ void labwork( void )
   unsigned int volume,volumepercent;
   //char volstring[80]= "Volume: ";
 
-
+  //char block[] = "á";
   volume = pot();
   volumepercent = volume/10.23;
   //strcat(volstring,itoaconv(volumepercent));
 
 
   display_string(1,itoaconv(volumepercent));
+  //display_string(2,block);
+  //display_image(96,testicon);
   checkfreq(volume);
 
   //prime = nextprime(prime);
