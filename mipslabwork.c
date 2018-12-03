@@ -13,6 +13,7 @@
 #include <stdint.h>   /* Declarations of uint_32 and the like */
 #include <pic32mx.h>  /* Declarations of system-specific addresses etc */
 #include "mipslab.h"  /* Declatations for these labs */
+#include <string.h>
 
 int mytime = 0x5957;
 int timeoutcount =0;
@@ -75,9 +76,9 @@ void labinit( void )
   return;
 }
 
-void checkfreq( void ){
+void checkfreq(int dutycycle){
   int button = getbtn();
-  display_string(0,itoaconv(button));
+  display_string(0,itoaconv(button)); // TESTING
   int sw = getsw();
   if (button==0 && nobtn_flag==0){  // no button used, set duty = 0, volume 0., only repeat if flag false
     genpwm(0,1);
@@ -88,24 +89,24 @@ void checkfreq( void ){
     nobtn_flag = 0;
     if((button & 1) && (btn1_flag==0)){  //BTN1 pushed
       btn1_flag=1;
-      genpwm(256,40496);
+      genpwm(dutycycle,40496);
     }
     if((button>>1 & 1) && (btn2_flag==0)){ //BTN2 pushed
       btn2_flag=1;
-      genpwm(256,42904);
+      genpwm(dutycycle,42904);
     }
     if((button>>2 & 1) && (btn3_flag==0)){ //BTN3 pushed
       btn3_flag=1;
-      genpwm(256,45454);
+      genpwm(dutycycle,45454);
     }
     if((button>>3 & 1) && (btn4_flag==0)){ //BTN4 pushed
       btn4_flag=1;
-      genpwm(256,48000); // TODO gissade bara 480000
+      genpwm(dutycycle,48000); // TODO gissade bara 480000
     }
   }
 
 }
-int pot(){
+int pot( void ){
 unsigned int speed;
 AD1PCFG = ~(1 << 2); // portb 2 analog pin with pot
 TRISBSET = (1 << 2);
@@ -129,10 +130,17 @@ return speed;
 /* This function is called repetitively from the main program */
 void labwork( void )
 {
-  unsigned int speed;
-  checkfreq();
-  speed = pot();
-  display_string(1,itoaconv(speed));
+  unsigned int volume,volumepercent;
+  //char volstring[80]= "Volume: ";
+
+
+  volume = pot();
+  volumepercent = volume/10.23;
+  //strcat(volstring,itoaconv(volumepercent));
+
+
+  display_string(1,itoaconv(volumepercent));
+  checkfreq(volume);
 
   //prime = nextprime(prime);
   //display_string(0,itoaconv(prime));
