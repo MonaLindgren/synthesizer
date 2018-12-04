@@ -108,7 +108,7 @@ void checkfreq( void ){
   }
   else {
     nobtn_flag = 0;
-    if((button & 1) && (btn1_flag==0) && !sw1_flag){  //BTN1 pushed
+    if((button & 1) && (btn1_flag==0) && !sw1_flag){  //BTN1 pushed and no transpose
       btn1_flag=1;
       genpwm(256, F5);
     }
@@ -116,7 +116,7 @@ void checkfreq( void ){
       btn1_flag=1;
       genpwm(256, C6);
     }
-    else if((button>>1 & 1) && (btn2_flag==0) && !sw1_flag){ //BTN2 pushed
+    else if((button>>1 & 1) && (btn2_flag==0) && !sw1_flag){ //BTN2 pushed and no transpose
       btn2_flag=1;
       genpwm(256, E5);
     }
@@ -124,7 +124,7 @@ void checkfreq( void ){
       btn2_flag=1;
       genpwm(256, B5);
     }
-    else if((button>>2 & 1) && (btn3_flag==0) && !sw1_flag){ //BTN3 pushed
+    else if((button>>2 & 1) && (btn3_flag==0) && !sw1_flag){ //BTN3 pushed and no transpose
       btn3_flag=1;
       genpwm(256, D5);
     }
@@ -132,7 +132,7 @@ void checkfreq( void ){
       btn3_flag=1;
       genpwm(256, A5);
     }
-    else if((button>>3 & 1) && (btn4_flag==0) && !sw1_flag){ //BTN4 pushed
+    else if((button>>3 & 1) && (btn4_flag==0) && !sw1_flag){ //BTN4 pushed and no transpose
       btn4_flag=1;
       genpwm(256, C5);
     }
