@@ -17,6 +17,7 @@
 
 int mytime = 0x5957;
 int timeoutcount =0;
+int timeoutcount2 =0;
 int prime = 1234567;
 volatile int* trise = (volatile int*) 0xBF886100; //skapa pointers
 volatile int* porte= (volatile int*) 0xBF886110;
@@ -27,7 +28,11 @@ btn3_flag=0;
 btn4_flag=0;
 btn1_flag=0;
 nobtn_flag=0;
-int testsong[] = {40496,42904,40496,42904};
+int testsong[] = {40496,30000,40496,30000};
+int songsize = sizeof(testsong)/sizeof(testsong[0]);
+int notecount =0;
+int k=0;
+int playnote=0;
 
 
 char textstring[] = "text, more text, and even more text!";
@@ -62,6 +67,7 @@ void labinit( void )
 {
   *trisd |= 0xFE0; //enables btn2-4 and switch 1-4
   TRISF |= 0x2; //enables btn1 as input.
+
   // (*trise >> 8) << 8;  // clear 8 lsb ()
   // *porte=0; // set 0;
   // //TRISE = 0xFF;
@@ -76,10 +82,17 @@ void labinit( void )
 
   return;
 }
+void initt4(void){
+  T4CON= 0x70;
+  T4CONSET = 0x8000;
+  PR4 = (80000000/256)/10;
+  TMR4=0;
+
+}
 
 void checkfreq(int dutycycle){
   int button = getbtn();
-  display_string(0,itoaconv(button)); // TESTING
+  //display_string(0,itoaconv(button)); // TESTING
   int sw = getsw();
   if (button==0 && nobtn_flag==0){  // no button used, set duty = 0, volume 0., only repeat if flag false
     genpwm(0,1);
@@ -104,14 +117,39 @@ void checkfreq(int dutycycle){
       btn4_flag=1;
       genpwm(dutycycle,48000); // TODO gissade bara 480000
   }
-  // TODO some switch connect to delaystate
 
   }
+  }
 
-}
+// function that plays notes from at the moment testsong.
+// TODO delay /playtime not yet configured
 
+void playsong(int dutycycle, int ms){
+
+    if(IFS(0)&0x100){
+      IFS(0)&= ~0x100;
+      timeoutcount++;
+      display_string(0,itoaconv(timeoutcount));
+      if(timeoutcount==ms/2 && playnote==0){
+          genpwm(dutycycle,testsong[k]);
+          playnote=1;
+        }
+      if(timeoutcount==ms && playnote==1){
+        genpwm(0,1);
+        timeoutcount=0;
+        notecount++;
+        k++;
+        playnote=0;
+      }
+      if(notecount==songsize){
+        k=0;
+        notecount=0;
+
+      }
+      }
+  }
 // function that returns a value between 0-1023 controlled by potentiometer
-// TODO Comment code
+// TODO Comment code move to initialization
 int pot( void ){
 unsigned int value;
 AD1PCFG = ~(1 << 2); // portb 2 analog pin with pot
@@ -134,25 +172,13 @@ return value;
 }
 
 // If switch is on do this -- TODO  create delay that works
-void delaystate(int ms, int song[],int volume){
-  int counter =0;
-  int songsize = sizeof(song)/sizeof(song[0]);
-  int n,i;
-
-  for(n = 0; n < songsize; n++){
-  while (1) {
-    counter++;
-        }
-  for(i=0; i < ms*10; i++){
-    genpwm(0,0);
-  }
-      }
-    }
 
 /* This function is called repetitively from the main program */
 void labwork( void )
 {
   unsigned int volume,volumepercent;
+  int sw = getsw();
+  int sw2 = sw>>2;
   //char volstring[80]= "Volume: ";
 
   //char block[] = "á";
@@ -164,7 +190,12 @@ void labwork( void )
   display_string(1,itoaconv(volumepercent));
   //display_string(2,block);
   //display_image(96,testicon);
-  checkfreq(volume);
+  if(sw2 & 1){
+    initt4();
+    playsong(volume,1000);
+  }
+  else{
+  checkfreq(volume);}
 
   //prime = nextprime(prime);
   //display_string(0,itoaconv(prime));
