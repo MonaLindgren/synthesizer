@@ -2,10 +2,13 @@
 ###################
 *.o
 *.elf
+mipslabwork.c.o
 
 # Hex dumps #
 ###################
 *.hex
+outfile.elf
+outfile.hex
 
 analyse.asm
 hexmain.asm

@@ -94,19 +94,19 @@ void checkfreq( void ){
     nobtn_flag = 0;
     if((button & 1) && (btn1_flag==0)){  //BTN1 pushed
       btn1_flag=1;
-      genpwm(256, C5);
+      genpwm(256, F5);
     }
     if((button>>1 & 1) && (btn2_flag==0)){ //BTN2 pushed
       btn2_flag=1;
-      genpwm(256, D5);
+      genpwm(256, E5);
     }
     if((button>>2 & 1) && (btn3_flag==0)){ //BTN3 pushed
       btn3_flag=1;
-      genpwm(256, E5);
+      genpwm(256, D5);
     }
     if((button>>3 & 1) && (btn4_flag==0)){ //BTN4 pushed
       btn4_flag=1;
-      genpwm(256, F5);
+      genpwm(256, C5);
     }
   }
 
