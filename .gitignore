@@ -1,12 +1,12 @@
 # Compiled source #
 ###################
-.o
-.elf
+*.o
+*.elf
 
 # Hex dumps #
 ###################
-.hex
+*.hex
 
 analyse.asm
 hexmain.asm
-
+.deps/
