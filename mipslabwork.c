@@ -20,13 +20,19 @@ int prime = 1234567;
 volatile int* trise = (volatile int*) 0xBF886100; //skapa pointers
 volatile int* porte= (volatile int*) 0xBF886110;
 volatile int* trisd= (volatile int*) 0xBF8860C0;
-int btn2_flag,btn3_flag,btn4_flag,btn1_flag,nobtn_flag;
-btn2_flag=0;
-btn3_flag=0;
-btn4_flag=0;
-btn1_flag=0;
-nobtn_flag=0;
-
+int btn2_flag=0;
+int btn3_flag=0;
+int btn4_flag=0;
+int btn1_flag=0;
+int nobtn_flag=0;
+#define C5 38223
+#define D5 34052
+#define E5 30338
+#define F5 28634
+#define G5 25511
+#define A5 22727
+#define B5 20248
+#define C6 19111
 
 char textstring[] = "text, more text, and even more text!";
 
@@ -88,19 +94,19 @@ void checkfreq( void ){
     nobtn_flag = 0;
     if((button & 1) && (btn1_flag==0)){  //BTN1 pushed
       btn1_flag=1;
-      genpwm(256,40496);
+      genpwm(256, F5);
     }
     if((button>>1 & 1) && (btn2_flag==0)){ //BTN2 pushed
       btn2_flag=1;
-      genpwm(256,42904);
+      genpwm(256, E5);
     }
     if((button>>2 & 1) && (btn3_flag==0)){ //BTN3 pushed
       btn3_flag=1;
-      genpwm(256,45454);
+      genpwm(256, D5);
     }
     if((button>>3 & 1) && (btn4_flag==0)){ //BTN4 pushed
       btn4_flag=1;
-      genpwm(256,48000); // TODO gissade bara 480000
+      genpwm(256, C5);
     }
   }
 
