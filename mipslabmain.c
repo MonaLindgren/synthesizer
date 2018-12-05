@@ -59,11 +59,11 @@ int main(void) {
 	//display_string(0, "A");
 	//display_string(1, "simple synthenizer");
 	//display_string(2, "Engineering");
-	display_string(3, "Welcome!");
+	display_string(3, "Welcomen");
 	display_update();
+	display_image(50, icon);
 
 
-	display_image(96, icon);
 
 	labinit(); /* Do any lab-specific initialization */
 

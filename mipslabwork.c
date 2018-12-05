@@ -13,19 +13,29 @@
 #include <stdint.h>   /* Declarations of uint_32 and the like */
 #include <pic32mx.h>  /* Declarations of system-specific addresses etc */
 #include "mipslab.h"  /* Declatations for these labs */
+#include <string.h>
 
 int mytime = 0x5957;
 int timeoutcount =0;
+int timeoutcount2 =0;
 int prime = 1234567;
 volatile int* trise = (volatile int*) 0xBF886100; //skapa pointers
 volatile int* porte= (volatile int*) 0xBF886110;
 volatile int* trisd= (volatile int*) 0xBF8860C0;
+int testsong[] = {40496,30000,40496,30000};
+int songsize = sizeof(testsong)/sizeof(testsong[0]);
+int notecount =0;
+int k=0;
+int playnote=0;
+
+
 int btn2_flag=0;
 int btn3_flag=0;
 int btn4_flag=0;
 int btn1_flag=0;
 int nobtn_flag=0;
 int prev_sw = 0; // store the previous input from switch 1.
+
 #define C5 38223
 #define D5 34052
 #define E5 30338
@@ -67,6 +77,7 @@ void labinit( void )
 {
   *trisd |= 0xFE0; //enables btn2-4 and switch 1-4
   TRISF |= 0x2; //enables btn1 as input.
+
   // (*trise >> 8) << 8;  // clear 8 lsb ()
   // *porte=0; // set 0;
   // //TRISE = 0xFF;
@@ -81,6 +92,13 @@ void labinit( void )
 
   return;
 }
+void initt4(void){
+  T4CON= 0x70;
+  T4CONSET = 0x8000;
+  PR4 = (80000000/256)/10;
+  TMR4=0;
+
+}
 
 /*
 * checkfreq takes input from the buttons and switch 1 
@@ -88,9 +106,9 @@ void labinit( void )
 * checkfreq checks the last switch1-value and look up the current switch1-value.
 * This is required so that the buttons can be reset properly.
 */
-void checkfreq( void ){
+void checkfreq( int dutycycle ){
   int button = getbtn();
-  display_string(0,itoaconv(button));
+  //display_string(0,itoaconv(button)); // TESTING
   int sw = getsw();
   int sw1_flag = sw>>3 & 1; // check if switch 1 is on.
   if(sw1_flag != prev_sw){ 
@@ -110,41 +128,69 @@ void checkfreq( void ){
     nobtn_flag = 0;
     if((button & 1) && (btn1_flag==0) && !sw1_flag){  //BTN1 pushed and no transpose
       btn1_flag=1;
-      genpwm(256, F5);
+      genpwm(dutycycle, F5);
     }
     else if((button & 1) && (btn1_flag==0) && sw1_flag){  //BTN1 pushed and switch-1-transpose
       btn1_flag=1;
-      genpwm(256, C6);
+      genpwm(dutycycle, C6);
     }
     else if((button>>1 & 1) && (btn2_flag==0) && !sw1_flag){ //BTN2 pushed and no transpose
       btn2_flag=1;
-      genpwm(256, E5);
+      genpwm(dutycycle, E5);
     }
     else if((button>>1 & 1) && (btn2_flag==0) && sw1_flag){ //BTN2 pushed and switch-1-transpose
       btn2_flag=1;
-      genpwm(256, B5);
+      genpwm(dutycycle, B5);
     }
     else if((button>>2 & 1) && (btn3_flag==0) && !sw1_flag){ //BTN3 pushed and no transpose
       btn3_flag=1;
-      genpwm(256, D5);
+      genpwm(dutycycle, D5);
     }
     else if((button>>2 & 1) && (btn3_flag==0) && sw1_flag){ //BTN3 pushed and switch-1-transpose
       btn3_flag=1;
-      genpwm(256, A5);
+      genpwm(dutycycle, A5);
     }
     else if((button>>3 & 1) && (btn4_flag==0) && !sw1_flag){ //BTN4 pushed and no transpose
       btn4_flag=1;
-      genpwm(256, C5);
+      genpwm(dutycycle, C5);
     }
     else if((button>>3 & 1) && (btn4_flag==0) && sw1_flag){ //BTN4 pushed and switch-1-transpose
       btn4_flag=1;
-      genpwm(256, G5);
+      genpwm(dutycycle, G5);
     }
   }
 }
 
-int pot(){
-unsigned int speed;
+// function that plays notes from at the moment testsong.
+// TODO delay /playtime not yet configured
+
+void playsong(int dutycycle, int ms){
+    if(IFS(0)&0x100){
+      IFS(0)&= ~0x100;
+      timeoutcount++;
+      display_string(0,itoaconv(timeoutcount));
+      if(timeoutcount==ms/2 && playnote==0){
+          genpwm(dutycycle,testsong[k]);
+          playnote=1;
+        }
+      if(timeoutcount==ms && playnote==1){
+        genpwm(0,1);
+        timeoutcount=0;
+        notecount++;
+        k++;
+        playnote=0;
+      }
+      if(notecount==songsize){
+        k=0;
+        notecount=0;
+
+      }
+    }
+  }
+// function that returns a value between 0-1023 controlled by potentiometer
+// TODO Comment code move to initialization
+int pot( void ){
+unsigned int value;
 AD1PCFG = ~(1 << 2); // portb 2 analog pin with pot
 TRISBSET = (1 << 2);
 
@@ -159,18 +205,35 @@ AD1CON1 |= (0x1 << 1);
 
 while(!(AD1CON1 & (0x1 << 1)));
 while(!(AD1CON1 & 0x1));
-speed = ADC1BUF0;
-return speed;
-
+value = ADC1BUF0;
+return value;
 }
+
+// If switch is on do this -- TODO  create delay that works
 
 /* This function is called repetitively from the main program */
 void labwork( void )
 {
-  unsigned int speed;
-  checkfreq();
-  speed = pot();
-  display_string(1,itoaconv(speed));
+  unsigned int volume,volumepercent;
+  int sw = getsw();
+  int sw2 = sw>>2;
+  //char volstring[80]= "Volume: ";
+
+  //char block[] = "á";
+  volume = pot();
+  volumepercent = volume/10.23;
+  //strcat(volstring,itoaconv(volumepercent));
+
+
+  display_string(1,itoaconv(volumepercent));
+  //display_string(2,block);
+  //display_image(96,testicon);
+  if(sw2 & 1){
+    initt4();
+    playsong(volume,1000);
+  }
+  else{
+  checkfreq(volume);}
 
   //prime = nextprime(prime);
   //display_string(0,itoaconv(prime));
