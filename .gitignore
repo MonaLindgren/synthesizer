@@ -1,12 +1,15 @@
 # Compiled source #
 ###################
-.o
-.elf
+*.o
+*.elf
+mipslabwork.c.o
 
 # Hex dumps #
 ###################
-.hex
+*.hex
+outfile.elf
+outfile.hex
 
 analyse.asm
 hexmain.asm
-
+.deps/

@@ -22,18 +22,28 @@ int prime = 1234567;
 volatile int* trise = (volatile int*) 0xBF886100; //skapa pointers
 volatile int* porte= (volatile int*) 0xBF886110;
 volatile int* trisd= (volatile int*) 0xBF8860C0;
-int btn2_flag,btn3_flag,btn4_flag,btn1_flag,nobtn_flag;
-btn2_flag=0;
-btn3_flag=0;
-btn4_flag=0;
-btn1_flag=0;
-nobtn_flag=0;
 int testsong[] = {40496,30000,40496,30000};
 int songsize = sizeof(testsong)/sizeof(testsong[0]);
 int notecount =0;
 int k=0;
 int playnote=0;
 
+
+int btn2_flag=0;
+int btn3_flag=0;
+int btn4_flag=0;
+int btn1_flag=0;
+int nobtn_flag=0;
+int prev_sw = 0; // store the previous input from switch 1.
+
+#define C5 38223
+#define D5 34052
+#define E5 30338
+#define F5 28634
+#define G5 25511
+#define A5 22727
+#define B5 20248
+#define C6 19111
 
 char textstring[] = "text, more text, and even more text!";
 
@@ -90,10 +100,25 @@ void initt4(void){
 
 }
 
-void checkfreq(int dutycycle){
+/*
+* checkfreq takes input from the buttons and switch 1 
+* and plays the note that correspond to that specific button-switch setting. 
+* checkfreq checks the last switch1-value and look up the current switch1-value.
+* This is required so that the buttons can be reset properly.
+*/
+void checkfreq( int dutycycle ){
   int button = getbtn();
   //display_string(0,itoaconv(button)); // TESTING
   int sw = getsw();
+  int sw1_flag = sw>>3 & 1; // check if switch 1 is on.
+  if(sw1_flag != prev_sw){ 
+  	display_string(0,"reset buttons");
+  	prev_sw = sw1_flag;
+  	btn1_flag = 0; //reset all pressed-button-flags
+  	btn2_flag = 0;
+  	btn3_flag = 0;
+  	btn4_flag = 0;	
+  }
   if (button==0 && nobtn_flag==0){  // no button used, set duty = 0, volume 0., only repeat if flag false
     genpwm(0,1);
     nobtn_flag=1;
@@ -101,31 +126,45 @@ void checkfreq(int dutycycle){
   }
   else {
     nobtn_flag = 0;
-    if((button & 1) && (btn1_flag==0)){  //BTN1 pushed
+    if((button & 1) && (btn1_flag==0) && !sw1_flag){  //BTN1 pushed and no transpose
       btn1_flag=1;
-      genpwm(dutycycle,40496);
+      genpwm(dutycycle, F5);
     }
-    if((button>>1 & 1) && (btn2_flag==0)){ //BTN2 pushed
+    else if((button & 1) && (btn1_flag==0) && sw1_flag){  //BTN1 pushed and switch-1-transpose
+      btn1_flag=1;
+      genpwm(dutycycle, C6);
+    }
+    else if((button>>1 & 1) && (btn2_flag==0) && !sw1_flag){ //BTN2 pushed and no transpose
       btn2_flag=1;
-      genpwm(dutycycle,42904);
+      genpwm(dutycycle, E5);
     }
-    if((button>>2 & 1) && (btn3_flag==0)){ //BTN3 pushed
+    else if((button>>1 & 1) && (btn2_flag==0) && sw1_flag){ //BTN2 pushed and switch-1-transpose
+      btn2_flag=1;
+      genpwm(dutycycle, B5);
+    }
+    else if((button>>2 & 1) && (btn3_flag==0) && !sw1_flag){ //BTN3 pushed and no transpose
       btn3_flag=1;
-      genpwm(dutycycle,45454);
+      genpwm(dutycycle, D5);
     }
-    if((button>>3 & 1) && (btn4_flag==0)){ //BTN4 pushed
+    else if((button>>2 & 1) && (btn3_flag==0) && sw1_flag){ //BTN3 pushed and switch-1-transpose
+      btn3_flag=1;
+      genpwm(dutycycle, A5);
+    }
+    else if((button>>3 & 1) && (btn4_flag==0) && !sw1_flag){ //BTN4 pushed and no transpose
       btn4_flag=1;
-      genpwm(dutycycle,48000); // TODO gissade bara 480000
+      genpwm(dutycycle, C5);
+    }
+    else if((button>>3 & 1) && (btn4_flag==0) && sw1_flag){ //BTN4 pushed and switch-1-transpose
+      btn4_flag=1;
+      genpwm(dutycycle, G5);
+    }
   }
-
-  }
-  }
+}
 
 // function that plays notes from at the moment testsong.
 // TODO delay /playtime not yet configured
 
 void playsong(int dutycycle, int ms){
-
     if(IFS(0)&0x100){
       IFS(0)&= ~0x100;
       timeoutcount++;
@@ -146,7 +185,7 @@ void playsong(int dutycycle, int ms){
         notecount=0;
 
       }
-      }
+    }
   }
 // function that returns a value between 0-1023 controlled by potentiometer
 // TODO Comment code move to initialization
@@ -168,7 +207,6 @@ while(!(AD1CON1 & (0x1 << 1)));
 while(!(AD1CON1 & 0x1));
 value = ADC1BUF0;
 return value;
-
 }
 
 // If switch is on do this -- TODO  create delay that works
