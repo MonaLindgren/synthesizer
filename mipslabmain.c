@@ -56,12 +56,9 @@ int main(void) {
 	SPI2CONSET = 0x8000;
 
 	display_init();
-	//display_string(0, "A");
-	//display_string(1, "simple synthenizer");
-	//display_string(2, "Engineering");
-	display_string(3, "Welcomen");
+	display_string(0, "Project:");
+	display_string(1,"Synthesizer");
 	display_update();
-	display_image(50, icon);
 
 
 
